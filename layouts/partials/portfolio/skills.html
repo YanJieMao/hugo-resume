@@ -1,29 +1,36 @@
 <section class="resume-section p-3 p-lg-5 d-flex flex-column" id="skills">
   <div class="my-auto" id="skills-content">
-  <h2 class="mb-5">{{ i18n "skills" }}</h2>
-    {{ $data := $.Data }}
-    {{ range $data.skills }}
-        <div class="subheading mb-3 skills-heading">{{ .grouping }}</div>
-            <ul>
-            {{ range .skills }}
-                {{ if isset . "name" }}
-                    {{ $devicon := cond (in $data.devicons (lower .icon)) (lower .icon) (cond (in $data.devicons (lower .name)) (lower .name) "terminal_badge") }}
-                    <li class="list-inline-item">
-                      <i class="devicons devicons-{{ $devicon }}"></i>
-                      {{if isset . "link"}}
-                          <a href="{{.link}}">{{ .name }}</a>
-                      {{ else }}
-                          {{ .name }}
-                      {{ end }}
-                    </li>
-                {{ else }}
-                  <li class="list-inline-item">
-                    <i class="devicons devicons-{{ cond (in $data.devicons (lower .)) (lower .) "terminal_badge" }}"></i>
-                    {{ . }}
-                  </li>
-                {{ end }}
-            {{ end }}
-            </ul>
+    <h2 class="mb-5">{{ i18n "skills" }}</h2>
+
+    {{/* 尝试读取多语言文件，如果不存在 fallback 到 data/skills.json */}}
+    {{ $lang := site.Language.Lang }}
+    {{ $skillsData := index site.Data $lang "skills" | default site.Data.skills }}
+
+    {{/* 遍历数组顶层 */}}
+    {{ range $skillsData }}
+      <div class="subheading mb-3 skills-heading">{{ .grouping }}</div>
+      <ul class="list-inline dev-icons">
+        {{ range .skills }}
+          {{ if reflect.IsMap . }}
+            {{/* 对象类型：可能有 name, icon, link */}}
+            {{ $icon := cond (isset . "icon") .icon "terminal_badge" }}
+            <li class="list-inline-item">
+              <i class="devicons devicons-{{ $icon }}"></i>
+              {{ if isset . "link" }}
+                <a href="{{ .link }}" target="_blank">{{ .name }}</a>
+              {{ else }}
+                {{ .name }}
+              {{ end }}
+            </li>
+          {{ else }}
+            {{/* 字符串类型 */}}
+            <li class="list-inline-item">
+              <i class="devicons devicons-{{ lower . }}"></i>
+              {{ . }}
+            </li>
+          {{ end }}
+        {{ end }}
+      </ul>
     {{ end }}
   </div>
 </section>
